@@ -1,5 +1,6 @@
 import attr
 import abc
+import ast
 
 from .annotator import name_of_alias
 
@@ -11,10 +12,12 @@ class Variables:
     import_statements = attr.ib(attr.Factory(set))
     @property
     def all_symbols(self):
-        var_names = {var.id for var in self.variables}
+        arg_names = {var.arg for var in self.variables if type(var) == ast.arg}
+        var_names = {var.id for var in self.variables if type(var) == ast.Name}
+        exception_names = {var.name for var in self.variables if type(var) == ast.ExceptHandler}
         block_definitions = {var.name for var in self.functions | self.classes}
         import_statements = {name_of_alias(var) for var in self.import_statements}
-        return var_names | block_definitions | import_statements
+        return arg_names | var_names | exception_names | block_definitions | import_statements
 
 class Scope(abc.ABC):
     def __init__(self):
